@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+    <head>
+        <title>JustOne</title>
+        <style>
+            .item1 { grid-area: header; }
+            .item2 { grid-area: menu; }
+            .item3 { grid-area: main; }
+
+            .grid-container {
+                display: grid;
+                grid-template-areas:
+                    'header header'
+                    'main menu';
+                grid-gap: 0px;
+                padding: 0px;
+            }   
+
+            #input {
+                border-top-left-radius: 15px;
+                border-bottom-left-radius: 15px;
+                border: none;
+                width: 350px;
+                height: 30px;
+                background-color: rgb(104, 104, 104);
+                color: rgb(212, 212, 212);
+                outline: none;
+                font-size: 15px;
+                padding-left: 10px;
+                margin-right: 0px;
+            }
+
+            #submit {
+                border-top-right-radius: 15px;
+                border-bottom-right-radius: 15px;
+                border: none;
+                width: 50px;
+                height: 32px;
+                background-color: rgb(104, 104, 104);
+                color: rgb(212, 212, 212);
+                outline: none;
+                font-size: 15px;
+                margin-left: 0px;
+            }
+
+            ::placeholder {
+                color: rgb(212, 212, 212);
+            }
+
+            .center {
+                margin: auto;
+                width: 50%;
+                text-align: center;
+            }
+            .crop {
+                object-fit: cover;
+                object-position: 0px -16px;
+            }
+            body {
+                background-color: rgb(49, 49, 49);
+            }
+        </style>
+        <link href="fontawesome/css/all.css" rel="stylesheet">
+        <script>
+            console.log(getCookie("videoList"));
+
+            videos = [];
+
+            //  Adds the video from the input bar to the list of videos to watch
+            function addVideo() {
+                url = document.getElementById("input").value;
+                videoID = getVideoID(url);
+                
+                if(!videos.includes(videoID)) {
+                    videos.push(videoID);
+                    addToVideoList(videoID);
+                    setIFrame(videos[0]);
+                }
+
+                setCookie("videoList",videoID,7);
+                document.getElementById("input").value = "";
+            }
+
+            // Sets the main video to the given video ID
+            function setIFrame(videoID) {
+                first = "<iframe id = \"videoFrame\" width=\"1003\" height=\"520.19\" src=\"https://www.youtube.com/embed/";
+                second = "\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>";
+                document.getElementById("frame").innerHTML = first + videoID + second;
+            }
+
+            // Parses the url and returns the video ID as a string
+            function getVideoID(url) {
+                let re = (url.includes('&') ? /.*v=(.*)&.*&/ : /.*v=(.*)/);
+                console.table(url.match(re));
+                return url.match(re)[1];
+            }
+
+            // Creates a new card for the given video and adds it to the playlist
+            function addToVideoList(videoID) {
+                // List item
+                var newListItem = document.createElement("div");
+                newListItem.id = videoID;
+                newListItem.display = "block";
+                newListItem.style.height = "94px";
+                document.getElementById("listDiv").appendChild(newListItem);
+
+                // Thumbnail
+                var newVideo = document.createElement("img");
+                newVideo.src = getThumbnail(videoID);
+                
+                newVideo.width = 168;
+                newVideo.height = 94;
+                newVideo.className = "crop";
+                newVideo.onclick = function() { setIFrame(videoID); }
+                
+                newListItem.appendChild(newVideo);
+                
+                // Delete button
+                var deleteButton = document.createElement("button");
+                deleteButton.innerHTML = "<i style=\"color: white;\" class=\"fas fa-trash\"></i>";
+                deleteButton.style.height = "95px";
+                deleteButton.style.width = "35px";
+                deleteButton.style.position = "relative"
+                deleteButton.style.top = "-42px";
+                deleteButton.style.backgroundColor = "rgb(49, 49, 49)";
+                deleteButton.style.borderStyle = "none";
+
+
+                deleteButton.onclick = function() {
+                    document.getElementById(videoID).remove();
+                    videos.splice(videos.indexOf(videoID), 1);
+                };
+                setIFrame(videos[0]);
+                newListItem.appendChild(deleteButton);
+
+                // Add new list item to video list
+                var videoList = document.getElementById("list");
+                videoList.appendChild(newListItem);
+            }
+
+            // Returns the URL of the given video ID
+            function getThumbnail(videoID) {
+                first = "http://img.youtube.com/vi/";
+                second = "/0.jpg";
+                return first + videoID + second;
+            }
+
+            function setCookie(name,value,days) {
+                var expires = "";
+                if (days) {
+                    var date = new Date();
+                    date.setTime(date.getTime() + (days*24*60*60*1000));
+                    expires = "; expires=" + date.toUTCString();
+                }
+                document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+            }
+            
+            function getCookie(name) {
+                var nameEQ = name + "=";
+                var ca = document.cookie.split(';');
+                for(var i=0;i < ca.length;i++) {
+                    var c = ca[i];
+                    while (c.charAt(0)==' ') c = c.substring(1,c.length);
+                    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+                }
+                return null;
+            }
+            
+            function eraseCookie(name) {   
+                document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            }
+        </script>
+    </head>
+    <body>
+        <div class = "grid-container">
+            <div class="item1 center">
+                <input id = "input" type="text" placeholder="Enter YouTube Video URL...">
+                <button id = "submit" onclick = "addVideo()">Enter</button>
+            </div>
+            <div id = "listDiv" class="item2">
+                <table style="border: 1px solid white;">
+                    <th style="border: 1px solid white; font-family: Arial; color: white;">Playlist</th>
+                    <tr style="border: 1px solid white; position: relative;">
+                        <td  id="list" style="border: 1px solid white;"></td>
+                    </tr>
+                </table>
+
+            </div>
+            <div class="item3"><p id = "frame"></p></div>
+        </div>        
+    </body>
+</html>
